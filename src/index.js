@@ -1,14 +1,23 @@
+require ('./models/Users');
+require ('./models/Track');
+const dotenv = require('dotenv');
 const express = require('express');
 const mongoose = require('mongoose'); // mongoose is a promise-based MongoDB driver for Node.js
 const bodyParser = require('body-parser'); // for parsing POST requests
+
 const authRoutes = require('./routes/authRoutes'); // for handling user authentication
+const trackRoutes = require('./routes/trackRoutes'); // for handling track data
+
+const requireAuth = require('./middlewares/requireAuth'); // for requiring authentication
 
 const app = express();
 
 app.use(bodyParser.json()); // for parsing application/json
 app.use(authRoutes);
+app.use(trackRoutes);
 // BEGIN MONGOOSE CODE
-const mongoUri = 'mongodb+srv://jfmckay858:adminadmin@cluster0.c2qzt.mongodb.net/?retryWrites=true&w=majority';
+dotenv.config();
+const mongoUri = process.env.MONGO_KEY;
 
 mongoose.connect(mongoUri, { 
 
@@ -26,8 +35,8 @@ mongoose.connection.on('error',
 // END MONGOOSE CODE
 
 // get request
-app.get('/', (req, res) => {
-    res.send('Hello There!');
+app.get('/', requireAuth, (req, res) => {
+    res.send(`Your email: ${req.user.email}`);
 });
 
 app.listen(3000, () => {
